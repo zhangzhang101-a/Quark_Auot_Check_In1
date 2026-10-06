@@ -1,0 +1,25 @@
+name: B站签到
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  bilibili-signin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: 安装依赖
+        run: pip install requests
+      - name: 执行 B站签到脚本
+        env:
+          SESSDATA: ${{ secrets.SESSDATA }}
+          BILI_JCT: ${{ secrets.BILI_JCT }}
+          DEDE_USER_ID: ${{ secrets.DEDE_USER_ID }}
+        run: python checkIn_Bilibili.py
