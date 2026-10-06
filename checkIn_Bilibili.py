@@ -60,8 +60,8 @@ def sign_daily():
     # 漫画签到
     try:
         url = "https://manga.bilibili.com/twirp/activity.v1.Activity/ClockIn"
-        data = {"platform": "web"}
-        resp = requests.post(url, headers=headers, json=data, timeout=10).json()
+        data = {"platform": "android"}
+        resp = requests.post(url, headers=headers, data=data, timeout=10).json()
         if resp["code"] == 0:
             print("✅ 漫画签到成功")
         else:
@@ -70,22 +70,19 @@ def sign_daily():
         print(f"ℹ️ 漫画签到: 接口异常 {e}")
 
 # 自动观看视频（拿5经验）
-def watch_video(aid):
+def watch_video(bvid):
     try:
-        url = "https://api.bilibili.com/x/v2/dm/view"
+        url = "https://api.bilibili.com/x/click-interface/web/heartbeat"
         data = {
-            "aid": aid,
-            "played_time": 300,
-            "type": 3,
+            "bvid": bvid,
+            "played_time": random.randint(30, 60),
             "csrf": BILI_JCT
         }
-        resp = requests.post(url, headers=headers, data=data, timeout=10)
-        resp.raise_for_status()
-        result = resp.json()
-        if result.get("code", 0) == 0:
+        resp = requests.post(url, headers=headers, data=data, timeout=10).json()
+        if resp.get("code", 0) == 0:
             print("✅ 观看视频完成 (+5经验)")
         else:
-            print(f"ℹ️ 观看视频: {result.get('message', '已完成')}")
+            print(f"ℹ️ 观看视频: {resp.get('message', '已完成')}")
     except Exception as e:
         print(f"ℹ️ 观看视频: 接口异常 {e}")
 
@@ -126,7 +123,7 @@ def get_hot_videos():
         url = "https://api.bilibili.com/x/web-interface/popular?ps=10&pn=1"
         resp = requests.get(url, headers=headers, timeout=10).json()
         if resp["code"] == 0:
-            return [v["aid"] for v in resp["data"]["list"]]
+            return [{"aid": v["aid"], "bvid": v["bvid"]} for v in resp["data"]["list"]]
     except Exception as e:
         print(f"ℹ️ 获取热门视频异常: {e}")
     return []
@@ -158,10 +155,12 @@ def main():
         return
 
     # 随机选一个视频
-    aid = random.choice(videos)
+    video = random.choice(videos)
+    aid = video["aid"]
+    bvid = video["bvid"]
 
     # 观看视频
-    watch_video(aid)
+    watch_video(bvid)
     time.sleep(2)
 
     # 分享视频
